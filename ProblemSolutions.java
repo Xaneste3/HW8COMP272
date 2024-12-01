@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   ADD YOUR NAME / SECTION NUMBER HERE
+ *   Xander Estevez COMP272-002
  *
  *   This java file contains the problem solutions of canFinish and
  *   numGroups methods.
@@ -72,18 +72,42 @@ class ProblemSolutions {
      * @return boolean          - True if all exams can be taken, else false.
      */
 
-    public boolean canFinish(int numExams, 
-                             int[][] prerequisites) {
-      
-        int numNodes = numExams;  // # of nodes in graph
+    public boolean canFinish(int numExams, int[][] prerequisites) {
 
-        // Build directed graph's adjacency list
-        ArrayList<Integer>[] adj = getAdjList(numExams, 
-                                        prerequisites); 
+        ArrayList<Integer>[] adj = getAdjList(numExams, prerequisites);
 
-        // ADD YOUR CODE HERE - ADD YOUR NAME / SECTION AT TOP OF FILE
+        boolean[] visited = new boolean[numExams];
+        boolean[] recursionStack = new boolean[numExams];
+
+        for (int i = 0; i < numExams; i++) {
+            if (!visited[i]) {
+                if (cyclicDepth(i, adj, visited, recursionStack)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean cyclicDepth(int currentNode, ArrayList<Integer>[] adj,
+                                boolean[] visited, boolean[] recursionStack) {
+
+        visited[currentNode] = true;
+        recursionStack[currentNode] = true;
+
+        for (int neighbor : adj[currentNode]) {
+            if (!visited[neighbor]) {
+                if (cyclicDepth(neighbor, adj, visited, recursionStack)) {
+                    return true;
+                }
+            } else if (recursionStack[neighbor]) {
+                return true;
+            }
+        }
+
+        recursionStack[currentNode] = false;
         return false;
-
     }
 
 
@@ -101,8 +125,8 @@ class ProblemSolutions {
     private ArrayList<Integer>[] getAdjList(
             int numNodes, int[][] edges) {
 
-        ArrayList<Integer>[] adj 
-                    = new ArrayList[numNodes];      // Create an array of ArrayList ADT
+        ArrayList<Integer>[] adj
+                = new ArrayList[numNodes];      // Create an array of ArrayList ADT
 
         for (int node = 0; node < numNodes; node++){
             adj[node] = new ArrayList<Integer>();   // Allocate empty ArrayList per node
@@ -165,34 +189,40 @@ class ProblemSolutions {
 
     public int numGroups(int[][] adjMatrix) {
         int numNodes = adjMatrix.length;
-        Map<Integer,List<Integer>> graph = new HashMap();
-        int i = 0, j =0;
+        Map<Integer, List<Integer>> graph = new HashMap<>();
 
-        /*
-         * Converting the Graph Adjacency Matrix to
-         * an Adjacency List representation. This
-         * sample code illustrates a technique to do so.
-         */
-
-        for(i = 0; i < numNodes ; i++){
-            for(j = 0; j < numNodes; j++){
-                if( adjMatrix[i][j] == 1 && i != j ){
-                    // Add AdjList for node i if not there
-                    graph.putIfAbsent(i, new ArrayList());
-                    // Add AdjList for node j if not there
-                    graph.putIfAbsent(j, new ArrayList());
-
-                    // Update node i adjList to include node j
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (adjMatrix[i][j] == 1 && i != j) {
+                    graph.putIfAbsent(i, new ArrayList<>());
+                    graph.putIfAbsent(j, new ArrayList<>());
                     graph.get(i).add(j);
-                    // Update node j adjList to include node i
                     graph.get(j).add(i);
                 }
             }
         }
 
-        // YOUR CODE GOES HERE - you can add helper methods, you do not need
-        // to put all code in this method.
-        return -1;
+        boolean[] visited = new boolean[numNodes];
+        int groupCount = 0;
+
+        for (int i = 0; i < numNodes; i++) {
+            if (!visited[i]) {
+
+                depthFirst(i, visited, graph);
+                groupCount++;
+            }
+        }
+
+        return groupCount;
     }
 
+    private void depthFirst(int node, boolean[] visited, Map<Integer, List<Integer>> graph) {
+        visited[node] = true;
+
+        for (Integer neighbor : graph.getOrDefault(node, new ArrayList<>())) {
+            if (!visited[neighbor]) {
+                depthFirst(neighbor, visited, graph);
+            }
+        }
+    }
 }
